@@ -7,6 +7,18 @@ export async function onRequest(context) {
     const { request } = context;
     const url = new URL(request.url);
 
+    // Referer kontrolü - Hotlink Protection
+    const referer = request.headers.get('Referer') || request.headers.get('referer');
+    
+    if (!referer) {
+        return new Response('Forbidden', {
+            status: 403,
+            headers: {
+                'X-Block-Reason': 'No-Referer'
+            }
+        });
+    }
+
     // API endpoint'lerini bypass et (eğer kullanmak isterseniz)
     if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/cdn/')) {
         return context.next();
