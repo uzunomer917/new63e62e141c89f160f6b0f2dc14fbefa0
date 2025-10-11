@@ -69,7 +69,8 @@ export async function onRequest(context) {
             'content-length',
             'etag',
             'last-modified',
-            'accept-ranges'
+            'accept-ranges',
+            'cf-cache-status'  // Cache durumunu görmek için
         ];
         
         allowedHeaders.forEach(header => {
@@ -85,6 +86,14 @@ export async function onRequest(context) {
         // Cache control - 2 saat (7200 saniye)
         if (response.ok && request.method === 'GET') {
             newHeaders.set('Cache-Control', 'public, max-age=7200, s-maxage=86400');
+        }
+        
+        // Cloudflare cache status'u ekle (eğer yoksa)
+        if (!newHeaders.has('cf-cache-status')) {
+            const cacheStatus = response.headers.get('cf-cache-status');
+            if (cacheStatus) {
+                newHeaders.set('CF-Cache-Status', cacheStatus);
+            }
         }
 
         // Response döndür
