@@ -1,7 +1,7 @@
 // Cloudflare Pages Middleware - Reverse Proxy
 // Tüm istekleri hedef siteye yönlendirir
 
-const TARGET_SITE = 'http://cdn.gali.futbol/';
+const TARGET_SITE = 'https://w0rk3rsb4ckd00r.global.ssl.fastly.net/';
 
 export async function onRequest(context) {
     const { request } = context;
