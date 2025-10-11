@@ -22,12 +22,18 @@ export async function onRequest(context) {
         headers.set('Referer', TARGET_SITE);
         headers.set('Origin', TARGET_SITE);
 
-        // Hedef siteye istek yap
+        // Hedef siteye istek yap - Cloudflare cache ile
         const response = await fetch(targetUrl.toString(), {
             method: request.method,
             headers: headers,
             body: request.method !== 'GET' && request.method !== 'HEAD' ? request.body : undefined,
-            redirect: 'manual'
+            redirect: 'manual',
+            cf: {
+                // Cloudflare edge cache ayarları
+                cacheTtl: 7200,              // 2 saat cache (saniye)
+                cacheEverything: true,        // Her şeyi cache'le
+                cacheKey: targetUrl.toString() // Cache key
+            }
         });
 
         // Response header'larını düzenle
@@ -38,9 +44,11 @@ export async function onRequest(context) {
         newHeaders.set('X-Proxied-By', 'Cloudflare-Pages');
         newHeaders.set('X-Target-Site', TARGET_SITE);
         
-        // Cache control
+        // Cache control - 2 saat (7200 saniye)
         if (response.ok && request.method === 'GET') {
-            newHeaders.set('Cache-Control', 'public, max-age=3600');
+            newHeaders.set('Cache-Control', 'public, max-age=7200, s-maxage=7200');
+            newHeaders.set('CDN-Cache-Control', 'public, max-age=7200');
+            newHeaders.set('Cloudflare-CDN-Cache-Control', 'public, max-age=7200');
         }
 
         // HTML içeriğinde URL'leri değiştir (opsiyonel)
