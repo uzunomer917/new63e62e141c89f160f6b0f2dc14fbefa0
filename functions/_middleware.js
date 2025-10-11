@@ -84,7 +84,7 @@ export async function onRequest(context) {
         
         // Cache control - 2 saat (7200 saniye)
         if (response.ok && request.method === 'GET') {
-            newHeaders.set('Cache-Control', 'public, max-age=7200, s-maxage=7200');
+            newHeaders.set('Cache-Control', 'public, max-age=7200, s-maxage=86400');
         }
 
         // Response döndür
