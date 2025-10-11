@@ -60,8 +60,24 @@ export async function onRequest(context) {
             }
         });
 
-        // Response header'larını düzenle
-        const newHeaders = new Headers(response.headers);
+        // Temiz header'lar oluştur - Fastly header'larını temizle
+        const newHeaders = new Headers();
+        
+        // Sadece gerekli header'ları kopyala
+        const allowedHeaders = [
+            'content-type',
+            'content-length',
+            'etag',
+            'last-modified',
+            'accept-ranges'
+        ];
+        
+        allowedHeaders.forEach(header => {
+            const value = response.headers.get(header);
+            if (value) {
+                newHeaders.set(header, value);
+            }
+        });
         
         // CORS header
         newHeaders.set('Access-Control-Allow-Origin', '*');
