@@ -7,6 +7,18 @@ export async function onRequest(context) {
     const { request } = context;
     const url = new URL(request.url);
 
+    // Sadece .jpg uzantısına izin ver
+    const isJpg = /\.jpg$/i.test(url.pathname);
+    
+    if (!isJpg) {
+        return new Response('Forbidden', {
+            status: 403,
+            headers: {
+                'X-Block-Reason': 'Invalid-Extension'
+            }
+        });
+    }
+
     // Referer kontrolü - Hotlink Protection
     const referer = request.headers.get('Referer') || request.headers.get('referer');
     
@@ -51,42 +63,15 @@ export async function onRequest(context) {
         // Response header'larını düzenle
         const newHeaders = new Headers(response.headers);
         
-        // CORS header'larını ekle
+        // CORS header
         newHeaders.set('Access-Control-Allow-Origin', '*');
-        newHeaders.set('X-Proxied-By', 'Cloudflare-Pages');
-        newHeaders.set('X-Target-Site', TARGET_SITE);
         
         // Cache control - 2 saat (7200 saniye)
         if (response.ok && request.method === 'GET') {
             newHeaders.set('Cache-Control', 'public, max-age=7200, s-maxage=7200');
-            newHeaders.set('CDN-Cache-Control', 'public, max-age=7200');
-            newHeaders.set('Cloudflare-CDN-Cache-Control', 'public, max-age=7200');
         }
 
-        // HTML içeriğinde URL'leri değiştir (opsiyonel)
-        const contentType = response.headers.get('content-type') || '';
-        
-        if (contentType.includes('text/html')) {
-            let html = await response.text();
-            
-            // Hedef sitedeki URL'leri kendi domain'imize çevir
-            const targetHost = new URL(TARGET_SITE).host;
-            const ourHost = url.host;
-            
-            // Mutlak URL'leri değiştir
-            html = html.replace(new RegExp(`https?://${targetHost.replace('.', '\\.')}`, 'g'), `https://${ourHost}`);
-            
-            // Protocol-relative URL'leri değiştir
-            html = html.replace(new RegExp(`//${targetHost.replace('.', '\\.')}`, 'g'), `//${ourHost}`);
-            
-            return new Response(html, {
-                status: response.status,
-                statusText: response.statusText,
-                headers: newHeaders
-            });
-        }
-
-        // HTML değilse direkt döndür
+        // Response döndür
         return new Response(response.body, {
             status: response.status,
             statusText: response.statusText,
@@ -94,16 +79,8 @@ export async function onRequest(context) {
         });
 
     } catch (error) {
-        return new Response(JSON.stringify({
-            error: 'Proxy hatası',
-            message: error.message,
-            target: TARGET_SITE
-        }), {
-            status: 500,
-            headers: {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*'
-            }
+        return new Response('Internal Server Error', {
+            status: 500
         });
     }
 }
