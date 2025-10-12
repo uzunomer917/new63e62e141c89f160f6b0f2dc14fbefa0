@@ -46,32 +46,36 @@ export async function onRequest(context) {
         headers.set('Referer', TARGET_SITE);
         headers.set('Origin', TARGET_SITE);
 
-        // Önce cache'e bak
-        const cache = caches.default;
-        const cacheKey = new Request(targetUrl.toString(), request);
-        let response = await cache.match(cacheKey);
+// 49-74 arası değiştirmek gerekiyor:
+// Önce cache'e bak
+const cache = caches.default;
+const cacheKey = new Request(targetUrl.toString(), {
+    method: 'GET',
+    headers: headers
+});
+let response = await cache.match(cacheKey);
 
-        // Cache'de yoksa fetch et
-        if (!response) {
-            response = await fetch(targetUrl.toString(), {
-                method: request.method,
-                headers: headers,
-                body: request.method !== 'GET' && request.method !== 'HEAD' ? request.body : undefined,
-                redirect: 'manual',
-                cf: {
-                    cacheTtl: 86400,              // 24 saat cache
-                    cacheEverything: true,
-                    cacheKey: targetUrl.toString()
-                }
-            });
-
-            // Başarılıysa cache'e kaydet
-            if (response.ok) {
-                response = new Response(response.body, response);
-                response.headers.set('Cache-Control', 'public, max-age=86400');
-                context.waitUntil(cache.put(cacheKey, response.clone()));
-            }
+// Cache'de yoksa fetch et
+if (!response) {
+    const originResponse = await fetch(targetUrl.toString(), {
+        method: request.method,
+        headers: headers,
+        body: request.method !== 'GET' && request.method !== 'HEAD' ? request.body : undefined,
+        cf: {
+            cacheTtl: 604800,  // 7 gün
+            cacheEverything: true,
         }
+    });
+
+    // Başarılıysa cache'e kaydet
+    if (originResponse.ok) {
+        // Clone'u ÖNCE yap, sonra cache'e at
+        response = originResponse.clone();
+        context.waitUntil(cache.put(cacheKey, originResponse));
+    } else {
+        response = originResponse;
+    }
+}
 
         // Temiz header'lar oluştur - Fastly header'larını temizle
         const newHeaders = new Headers();
