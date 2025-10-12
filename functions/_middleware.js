@@ -46,19 +46,32 @@ export async function onRequest(context) {
         headers.set('Referer', TARGET_SITE);
         headers.set('Origin', TARGET_SITE);
 
-        // Hedef siteye istek yap - Cloudflare cache ile
-        const response = await fetch(targetUrl.toString(), {
-            method: request.method,
-            headers: headers,
-            body: request.method !== 'GET' && request.method !== 'HEAD' ? request.body : undefined,
-            redirect: 'manual',
-            cf: {
-                // Cloudflare edge cache ayarları
-                cacheTtl: 7200,              // 2 saat cache (saniye)
-                cacheEverything: true,        // Her şeyi cache'le
-                cacheKey: targetUrl.toString() // Cache key
+        // Önce cache'e bak
+        const cache = caches.default;
+        const cacheKey = new Request(targetUrl.toString(), request);
+        let response = await cache.match(cacheKey);
+
+        // Cache'de yoksa fetch et
+        if (!response) {
+            response = await fetch(targetUrl.toString(), {
+                method: request.method,
+                headers: headers,
+                body: request.method !== 'GET' && request.method !== 'HEAD' ? request.body : undefined,
+                redirect: 'manual',
+                cf: {
+                    cacheTtl: 86400,              // 24 saat cache
+                    cacheEverything: true,
+                    cacheKey: targetUrl.toString()
+                }
+            });
+
+            // Başarılıysa cache'e kaydet
+            if (response.ok) {
+                response = new Response(response.body, response);
+                response.headers.set('Cache-Control', 'public, max-age=86400');
+                context.waitUntil(cache.put(cacheKey, response.clone()));
             }
-        });
+        }
 
         // Temiz header'lar oluştur - Fastly header'larını temizle
         const newHeaders = new Headers();
@@ -83,9 +96,9 @@ export async function onRequest(context) {
         // CORS header
         newHeaders.set('Access-Control-Allow-Origin', '*');
         
-        // Cache control - 2 saat (7200 saniye)
+        // Cache control - 24 saat (86400 saniye)
         if (response.ok && request.method === 'GET') {
-            newHeaders.set('Cache-Control', 'public, max-age=7200, s-maxage=86400');
+            newHeaders.set('Cache-Control', 'public, max-age=86400, s-maxage=604800, immutable');
         }
         
         // Cloudflare cache status'u ekle (eğer yoksa)
