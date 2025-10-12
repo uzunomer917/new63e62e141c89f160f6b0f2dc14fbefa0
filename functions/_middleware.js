@@ -105,6 +105,9 @@ if (!response) {
             newHeaders.set('Cache-Control', 'public, max-age=86400, s-maxage=604800, immutable');
         }
         
+        // DEBUG: Cache durumunu göster
+        newHeaders.set('X-Cache-Status', response.headers.get('cf-cache-status') || 'MANUAL-CACHE');
+        
         // Cloudflare cache status'u ekle (eğer yoksa)
         if (!newHeaders.has('cf-cache-status')) {
             const cacheStatus = response.headers.get('cf-cache-status');
@@ -126,3 +129,4 @@ if (!response) {
         });
     }
 }
+
