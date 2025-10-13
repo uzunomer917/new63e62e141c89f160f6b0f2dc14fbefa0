@@ -60,8 +60,6 @@ export async function onRequest(context) {
                 cf: {
                     cacheTtl: 604800,  // 7 gün
                     cacheEverything: true,
-                    polish: 'lossy',  // Cloudflare görüntü optimizasyonu (lossy = %85 kalite)
-                    mirage: true,     // Mobil cihazlar için otomatik optimizasyon
                 }
             });
 
@@ -127,5 +125,3 @@ export async function onRequest(context) {
         });
     }
 }
-
-
