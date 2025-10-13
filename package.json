@@ -1,7 +1,7 @@
 {
   "name": "cloudflare-cdn-proxy",
   "version": "1.0.0",
-  "description": "Cloudflare Pages üzerinde çalışan CDN proxy servisi",
+  "description": "Cloudflare Pages",
   "main": "index.html",
   "scripts": {
     "dev": "wrangler pages dev .",
