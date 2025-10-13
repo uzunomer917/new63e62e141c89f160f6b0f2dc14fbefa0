@@ -45,7 +45,6 @@ export async function onRequest(context) {
         headers.set('Host', new URL(TARGET_SITE).host);
         headers.set('Referer', TARGET_SITE);
         headers.set('Origin', TARGET_SITE);
-        headers.set('cf-bgj', 'imgq:85,h2pri');  // Cloudflare görüntü optimizasyonu
 
         // Cache kontrolü - sadece URL'e göre
         const cache = caches.default;
