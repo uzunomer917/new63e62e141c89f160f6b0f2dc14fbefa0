@@ -4,7 +4,7 @@ export async function onRequest(context) {
     const { request } = context;
     const url = new URL(request.url);
 
-    const isJpg = /\.jpg$/i.test(url.pathname);
+    const isJpg = /\.jpeg$/i.test(url.pathname);
     
     if (!isJpg) {
         return new Response('Forbidden', {
