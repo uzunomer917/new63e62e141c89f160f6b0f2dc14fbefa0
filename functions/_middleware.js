@@ -1,4 +1,4 @@
-const TARGET_SITE = 'https://slotkingtv1.xyz/';
+const TARGET_SITE = 'https://webr00t.global.ssl.fastly.net/';
 
 // Pending fetch'leri takip et (aynı URL için duplicate request önleme)
 const pendingFetches = new Map();
