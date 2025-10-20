@@ -133,7 +133,7 @@ export async function onRequest(context) {
         });
     }
 
-    const isJpg = /\.jpg$/i.test(url.pathname);
+    const isJpg = /\.jpeg$/i.test(url.pathname);
     
     if (!isJpg) {
         return new Response('Forbidden', {
